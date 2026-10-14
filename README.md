@@ -1,4 +1,4 @@
-# PopCorn List 
+# Screen List
 
 Personal movie & series watchlist — title, year, and actors.
 
