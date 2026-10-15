@@ -1,4 +1,4 @@
-/* Loads OMDb posters into localStorage cache, then applies them to MOVIES */
+/* Applies public POSTERS map + localStorage OMDb cache */
 (function () {
   const LS_POSTERS = 'screenlist_posters';
   const LS_OMDB = 'screenlist_omdb_key';
@@ -12,8 +12,12 @@
 
   window.applyPosterCache = function (list) {
     const c = cache();
+    const pub = (typeof POSTERS !== 'undefined' && POSTERS) ? POSTERS : {};
     (list || []).forEach(function (m) {
-      if (!m.poster && c[key(m)]) m.poster = c[key(m)];
+      if (m.poster) return;
+      var k = key(m);
+      if (pub[k]) m.poster = pub[k];
+      else if (c[k]) m.poster = c[k];
     });
   };
 
