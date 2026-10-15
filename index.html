@@ -2,51 +2,101 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Screen List — My Watchlist</title>
 <meta name="description" content="Personal movie and series watchlist">
+<meta name="theme-color" content="#06070d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon.svg">
+<link rel="icon" type="image/svg+xml" href="/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#06070d;--bg-card:#0f1222;--bg-elevated:#161a2e;--tx:#eceef4;--mu:#8b92a8;--ac:#c4943a;--ac-soft:rgba(196,148,58,.15);--border:#1e2438;--radius:14px}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;line-height:1.45}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Outfit,system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;line-height:1.45}
 body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% -10%,rgba(196,148,58,.08),transparent),radial-gradient(ellipse 60% 40% at 90% 10%,rgba(100,80,180,.06),transparent);pointer-events:none;z-index:0}
 .wrap{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 18px 48px}
-header{padding:36px 0 12px;text-align:center}.logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:6px}.logo svg{width:36px;height:36px;color:var(--ac)}
-h1{font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(1.8rem,4vw,2.4rem);letter-spacing:-.02em}h1 span{color:var(--ac)}.subtitle{color:var(--mu);font-size:.95rem;margin-top:4px}
+header{padding:36px 0 12px;text-align:center}
+.logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:6px}
+.logo svg{width:36px;height:36px;color:var(--ac)}
+h1{font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(1.8rem,4vw,2.4rem);letter-spacing:-.02em}
+h1 span{color:var(--ac)}
+.subtitle{color:var(--mu);font-size:.95rem;margin-top:4px}
 .controls-bar{position:sticky;top:0;z-index:20;background:rgba(6,7,13,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:12px 0 8px;margin:0 -18px;padding-left:18px;padding-right:18px;border-bottom:1px solid transparent}
 .controls-bar.scrolled{border-bottom-color:var(--border)}
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.search-wrap{flex:1;min-width:180px;position:relative}.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mu);pointer-events:none}
+.search-wrap{flex:1;min-width:180px;position:relative}
+.search-wrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mu);pointer-events:none}
+.search-wrap .kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:.7rem;color:var(--mu);border:1px solid var(--border);border-radius:5px;padding:2px 6px;pointer-events:none;opacity:.7}
 input,select,button{background:var(--bg-card);color:var(--tx);border:1px solid var(--border);border-radius:10px;padding:11px 14px;font-size:.95rem;font-family:inherit;outline:none;transition:border-color .2s}
-input:focus,select:focus{border-color:var(--ac)}.search-wrap input{width:100%;padding-left:40px}select{cursor:pointer;min-width:120px}
-.btn{cursor:pointer;font-weight:500;white-space:nowrap}.btn:hover{border-color:var(--ac);color:var(--ac)}.btn.primary{background:var(--ac);border-color:var(--ac);color:#0a0b10}.btn.ghost{background:transparent}
+input:focus,select:focus{border-color:var(--ac)}
+.search-wrap input{width:100%;padding-left:40px;padding-right:36px}
+select{cursor:pointer;min-width:120px}
+.btn{cursor:pointer;font-weight:500;white-space:nowrap}
+.btn:hover{border-color:var(--ac);color:var(--ac)}
+.btn.primary{background:var(--ac);border-color:var(--ac);color:#0a0b10}
+.btn.ghost{background:transparent}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 6px}
-.chip{background:var(--bg-card);border:1px solid var(--border);color:var(--mu);border-radius:999px;padding:8px 16px;font-size:.85rem;font-weight:500;cursor:pointer;user-select:none;min-height:36px;display:inline-flex;align-items:center}.chip:hover{border-color:var(--ac);color:var(--tx)}.chip.on{background:var(--ac);border-color:var(--ac);color:#0a0b10}
+.chip{background:var(--bg-card);border:1px solid var(--border);color:var(--mu);border-radius:999px;padding:8px 16px;font-size:.85rem;font-weight:500;cursor:pointer;user-select:none;min-height:36px;display:inline-flex;align-items:center}
+.chip:hover{border-color:var(--ac);color:var(--tx)}
+.chip.on{background:var(--ac);border-color:var(--ac);color:#0a0b10}
 .stats{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:center;padding:14px 16px;margin:8px 0 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius)}
-.stat{text-align:center;min-width:70px}.stat-num{display:block;font-size:1.25rem;font-weight:700;color:var(--ac);line-height:1.2}.stat-label{font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+.stat{text-align:center;min-width:70px}
+.stat-num{display:block;font-size:1.25rem;font-weight:700;color:var(--ac);line-height:1.2}
+.stat-label{font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
 #count{color:var(--mu);font-size:.85rem;margin-bottom:12px}
-.year-group{margin-bottom:16px}.year-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;user-select:none;padding:2px 0}.year-header:hover .year-label{color:var(--ac)}
-.year-label{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700}.year-line{flex:1;height:1px;background:var(--border)}.year-count{color:var(--mu);font-size:.8rem;white-space:nowrap}
-.year-chevron{color:var(--mu);transition:transform .2s;flex-shrink:0}.year-group.collapsed .year-chevron{transform:rotate(-90deg)}.year-group.collapsed .movie-grid{display:none}
-.movie-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
-.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:transform .2s,border-color .2s,box-shadow .2s;display:flex;flex-direction:column;gap:5px}
+.year-group{margin-bottom:16px}
+.year-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;user-select:none;padding:2px 0}
+.year-header:hover .year-label{color:var(--ac)}
+.year-label{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700}
+.year-line{flex:1;height:1px;background:var(--border)}
+.year-count{color:var(--mu);font-size:.8rem;white-space:nowrap}
+.year-chevron{color:var(--mu);transition:transform .2s;flex-shrink:0}
+.year-group.collapsed .year-chevron{transform:rotate(-90deg)}
+.year-group.collapsed .movie-grid{display:none}
+.movie-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s;display:flex;flex-direction:column}
 .card:hover{transform:translateY(-2px);border-color:rgba(196,148,58,.35);box-shadow:0 8px 24px rgba(0,0,0,.3)}
-.card h3{font-size:1.02rem;font-weight:600;line-height:1.3}.meta{color:var(--mu);font-size:.85rem}.meta .year{color:var(--ac);font-weight:500}.cast{color:var(--mu);font-size:.8rem}
-.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.tag{font-size:.68rem;font-weight:500;background:var(--bg-elevated);border-radius:6px;padding:3px 8px;color:var(--mu);text-transform:uppercase;letter-spacing:.03em}.tag.series{background:var(--ac-soft);color:var(--ac)}.tag.local{background:rgba(100,160,255,.15);color:#7eb0ff}
-.empty{text-align:center;padding:56px 24px;color:var(--mu)}.empty-icon{width:56px;height:56px;margin:0 auto 16px;color:var(--border)}.empty h3{color:var(--tx);font-size:1.15rem;font-weight:600;margin-bottom:6px}.empty p{font-size:.9rem;max-width:280px;margin:0 auto 16px}
-footer{text-align:center;padding:28px 0 12px;color:var(--mu);font-size:.8rem}footer a{color:var(--ac);text-decoration:none}
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}.modal-overlay.open{display:flex}
+.poster{width:100%;aspect-ratio:2/3;object-fit:cover;background:var(--bg-elevated);display:block}
+.poster-ph{width:100%;aspect-ratio:2/3;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#12162a,#0a0c16);color:var(--ac);font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;letter-spacing:.02em;user-select:none}
+.card-body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.card h3{font-size:.98rem;font-weight:600;line-height:1.3}
+.meta{color:var(--mu);font-size:.8rem}
+.meta .year{color:var(--ac);font-weight:500}
+.cast{color:var(--mu);font-size:.75rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.tag{font-size:.65rem;font-weight:500;background:var(--bg-elevated);border-radius:6px;padding:2px 7px;color:var(--mu);text-transform:uppercase;letter-spacing:.03em}
+.tag.series{background:var(--ac-soft);color:var(--ac)}
+.tag.local{background:rgba(100,160,255,.15);color:#7eb0ff}
+.empty{text-align:center;padding:56px 24px;color:var(--mu)}
+.empty-icon{width:56px;height:56px;margin:0 auto 16px;color:var(--border)}
+.empty h3{color:var(--tx);font-size:1.15rem;font-weight:600;margin-bottom:6px}
+.empty p{font-size:.9rem;max-width:280px;margin:0 auto 16px}
+footer{text-align:center;padding:28px 0 12px;color:var(--mu);font-size:.8rem}
+footer a{color:var(--ac);text-decoration:none}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
 .modal{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;padding:24px}
-.modal h2{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:4px}.modal .hint{color:var(--mu);font-size:.8rem;margin-bottom:16px}
-.form-row{margin-bottom:12px}.form-row label{display:block;font-size:.75rem;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}.form-row input,.form-row select{width:100%}
-.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}.form-actions .btn{flex:1;min-width:100px;text-align:center}
-.admin-msg{font-size:.8rem;margin-top:10px;min-height:1.2em}.admin-msg.ok{color:#6dcc8a}.admin-msg.err{color:#e06848}
-.pin-gate{text-align:center}.pin-gate input{text-align:center;letter-spacing:.3em;font-size:1.2rem;max-width:160px;margin:12px auto;display:block}
+.modal h2{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:4px}
+.modal .hint{color:var(--mu);font-size:.8rem;margin-bottom:16px}
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:.75rem;color:var(--mu);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.form-row input,.form-row select{width:100%}
+.form-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.form-actions .btn{flex:1;min-width:100px;text-align:center}
+.admin-msg{font-size:.8rem;margin-top:10px;min-height:1.2em}
+.admin-msg.ok{color:#6dcc8a}
+.admin-msg.err{color:#e06848}
+.pin-gate{text-align:center}
+.pin-gate input{text-align:center;letter-spacing:.3em;font-size:1.2rem;max-width:160px;margin:12px auto;display:block}
 @media(max-width:520px){
 .controls{flex-direction:column;align-items:stretch}
 select,.btn{width:100%}
+.search-wrap .kbd{display:none}
 .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;gap:6px;padding-bottom:4px;margin:8px 0 4px}
 .chips::-webkit-scrollbar{display:none}
 .chip{padding:7px 12px;font-size:.8rem;min-height:34px;flex-shrink:0}
@@ -55,8 +105,8 @@ select,.btn{width:100%}
 .stats{gap:10px 12px;padding:12px}
 .stat-num{font-size:1.1rem}
 .movie-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
-.card{padding:12px}
-.card h3{font-size:.95rem}
+.card-body{padding:10px}
+.card h3{font-size:.9rem}
 }
 @media(min-width:400px) and (max-width:700px){
 .movie-grid{grid-template-columns:repeat(2,1fr);gap:10px}
@@ -70,7 +120,7 @@ select,.btn{width:100%}
 <svg viewBox="0 0 40 40" fill="none"><rect x="2" y="6" width="36" height="28" rx="3" stroke="currentColor" stroke-width="2.5"/><circle cx="20" cy="20" r="8" stroke="currentColor" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="currentColor"/><line x1="8" y1="6" x2="8" y2="34" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="32" y1="6" x2="32" y2="34" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/></svg>
 <h1>Screen <span>List</span></h1>
 </div>
-<p class="subtitle">Movies & series worth watching</p>
+<p class="subtitle">Movies &amp; series worth watching</p>
 </header>
 
 <div class="controls-bar" id="controlsBar">
@@ -78,6 +128,7 @@ select,.btn{width:100%}
 <div class="search-wrap">
 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
 <input id="q" type="search" placeholder="Search title or actor..." autocomplete="off">
+<span class="kbd">/</span>
 </div>
 <select id="t"><option value="">All types</option><option value="Movie">Movie</option><option value="Series">Series</option></select>
 <select id="o"><option value="year">By year</option><option value="az">A → Z</option><option value="new">Newest first</option><option value="old">Oldest first</option></select>
@@ -112,6 +163,7 @@ select,.btn{width:100%}
 <div class="form-row"><label>Year</label><input id="fYear" type="text" placeholder="2024"></div>
 <div class="form-row"><label>Type</label><select id="fType"><option value="Movie">Movie</option><option value="Series">Series</option></select></div>
 <div class="form-row"><label>Cast (comma-separated)</label><input id="fCast" type="text" placeholder="Actor One, Actor Two"></div>
+<div class="form-row"><label>Poster URL (optional)</label><input id="fPoster" type="url" placeholder="https://..."></div>
 <div class="form-row"><label>Tags</label><input id="fTags" type="text" placeholder="Animation"></div>
 <div class="form-actions">
 <button type="button" class="btn primary" id="fSave">Save</button>
@@ -141,6 +193,20 @@ function yearKey(m){
   if(!m.year)return 'Unknown';
   const n=parseInt(String(m.year).slice(0,4),10);
   return isNaN(n)?'Unknown':String(n);
+}
+function readUrlParams(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('q')) $('q').value=p.get('q')||'';
+  if(p.has('type')) $('t').value=p.get('type')||'';
+  if(p.has('sort')){const s=p.get('sort');if(['year','az','new','old'].includes(s)) $('o').value=s;}
+  if(p.has('actor')) actor=p.get('actor')||'';
+}
+function writeUrlParams(){
+  const p=new URLSearchParams();
+  const q=$('q').value.trim();const t=$('t').value;const o=$('o').value;
+  if(q) p.set('q',q);if(t) p.set('type',t);if(o&&o!=='year') p.set('sort',o);if(actor) p.set('actor',actor);
+  const qs=p.toString();const url=qs?(location.pathname+'?'+qs):location.pathname;
+  if(url!==location.pathname+location.search) history.replaceState(null,'',url);
 }
 function updateStats(){
   const movies=allMovies.filter(m=>m.type==='Movie').length;
@@ -175,14 +241,21 @@ function renderChips(){
     c.onclick=()=>{actor=c.dataset.a==='All'?'':c.dataset.a;renderChips();render()}
   });
 }
-function escapeHtml(s){return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"')}
+function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function posterBlock(m){
+  if(m.poster){
+    return '<img class="poster" src="'+escapeHtml(m.poster)+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="poster-ph" style="display:none">'+(m.title?escapeHtml(m.title.charAt(0)):'?')+'</div>';
+  }
+  const letter=m.title?escapeHtml(m.title.charAt(0).toUpperCase()):'?';
+  return '<div class="poster-ph">'+letter+'</div>';
+}
 function cardHTML(m){
   const year=m.year?'<span class="year">'+m.year+'</span>':'Year unknown';
   const cast=(m.cast&&m.cast.length)?'<div class="cast">'+m.cast.join(', ')+'</div>':'';
   const typeTag=m.type==='Series'?'<span class="tag series">Series</span>':'';
   const localTag=m._local?'<span class="tag local">Local</span>':'';
   const extraTags=(m.tags||[]).map(x=>'<span class="tag">'+x+'</span>').join('');
-  return '<article class="card"><h3>'+escapeHtml(m.title)+'</h3><div class="meta">'+year+'</div>'+cast+'<div class="tags">'+typeTag+localTag+extraTags+'</div></article>';
+  return '<article class="card">'+posterBlock(m)+'<div class="card-body"><h3>'+escapeHtml(m.title)+'</h3><div class="meta">'+year+'</div>'+cast+'<div class="tags">'+typeTag+localTag+extraTags+'</div></div></article>';
 }
 function render(){
   const q=$('q').value.toLowerCase().trim(),t=$('t').value,o=$('o').value;
@@ -196,6 +269,7 @@ function render(){
   else if(o==='new')list.sort((a,b)=>(parseInt(b.year)||0)-(parseInt(a.year)||0));
   else if(o==='old')list.sort((a,b)=>(parseInt(a.year)||9999)-(parseInt(b.year)||9999));
   $('count').textContent=list.length+' of '+allMovies.length+' titles';
+  writeUrlParams();
   if(!list.length){
     $('g').innerHTML='<div class="empty"><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg><h3>No matches</h3><p>Nothing fits that search or filter. Try another actor or clear filters.</p><button type="button" class="btn" id="emptyClear">Clear filters</button></div>';
     const btn=$('emptyClear');if(btn)btn.onclick=()=>{$('q').value='';$('t').value='';actor='';renderChips();render()};
@@ -215,6 +289,15 @@ function render(){
   }
 }
 window.addEventListener('scroll',()=>{$('controlsBar').classList.toggle('scrolled',window.scrollY>40)},{passive:true});
+document.addEventListener('keydown',e=>{
+  if(e.key==='/' && !e.ctrlKey && !e.metaKey && !e.altKey){
+    const tag=(e.target&&e.target.tagName||'').toLowerCase();
+    if(tag==='input'||tag==='textarea'||tag==='select'||e.target.isContentEditable) return;
+    e.preventDefault();
+    $('q').focus();
+    $('q').select();
+  }
+});
 function openAdmin(){$('adminModal').classList.add('open');$('pinGate').style.display='block';$('adminForm').style.display='none';$('pinInput').value='';$('pinMsg').textContent='';setTimeout(()=>$('pinInput').focus(),50)}
 function closeAdmin(){$('adminModal').classList.remove('open')}
 function unlockAdmin(){if($('pinInput').value!==getPin()){$('pinMsg').textContent='Wrong PIN';$('pinMsg').className='admin-msg err';return}$('pinGate').style.display='none';$('adminForm').style.display='block';$('adminMsg').textContent='';$('fTitle').focus()}
@@ -222,10 +305,11 @@ function saveMovie(){
   const title=$('fTitle').value.trim();
   if(!title){$('adminMsg').textContent='Title is required';$('adminMsg').className='admin-msg err';return}
   const entry={title,year:$('fYear').value.trim(),type:$('fType').value,cast:$('fCast').value.split(',').map(s=>s.trim()).filter(Boolean),tags:$('fTags').value.split(',').map(s=>s.trim()).filter(Boolean)};
+  const poster=$('fPoster').value.trim();if(poster) entry.poster=poster;
   const extras=loadExtras();extras.push(entry);saveExtras(extras);
   const newPin=$('fNewPin').value.trim();if(newPin)localStorage.setItem(LS_PIN,newPin);
   $('adminMsg').textContent='Saved locally';$('adminMsg').className='admin-msg ok';
-  $('fTitle').value='';$('fYear').value='';$('fCast').value='';$('fTags').value='';$('fNewPin').value='';
+  $('fTitle').value='';$('fYear').value='';$('fCast').value='';$('fTags').value='';$('fPoster').value='';$('fNewPin').value='';
   mergeMovies();updateStats();renderChips();render();
 }
 function exportJSON(){
@@ -239,7 +323,14 @@ $('pinInput').onkeydown=e=>{if(e.key==='Enter')unlockAdmin()};
 $('fClose').onclick=closeAdmin;$('fSave').onclick=saveMovie;$('fExport').onclick=exportJSON;
 $('adminModal').addEventListener('click',e=>{if(e.target===$('adminModal'))closeAdmin()});
 ['q','t','o'].forEach(id=>$(id).addEventListener('input',render));
-mergeMovies();updateStats();renderChips();render();
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});
+}
+mergeMovies();
+readUrlParams();
+updateStats();
+renderChips();
+render();
 </script>
 </body>
 </html>
