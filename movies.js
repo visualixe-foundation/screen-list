@@ -1,16 +1,2 @@
-// Add new titles here. Copy one block, change the values, keep the commas.
-// poster URLs from OMDb (optional field).
-const MOVIES = [
-  {
-    "title": "3 Idiots",
-    "year": "2009",
-    "type": "Movie",
-    "cast": [
-      "Aamir Khan",
-      "Madhavan",
-      "Mona Singh"
-    ],
-    "tags": [],
-    "poster": "https://m.media-amazon.com/images/M/MV5BNzc4ZWQ3NmYtODE0Ny00YTQ4LTlkZWItNTBkMGQ0MmUwMmUyXkEyXkFqcGc@._V1_SX300.jpg"
-  }
-];
+// Screen List data + OMDb posters
+const MOVIES = [{"title":"3 Idiots","year":"2009","type":"Movie","cast":["Aamir Khan","Madhavan","Mona Singh"],"tags":[],"poster":"https://m.media-amazon.com/images/M/MV5BNzc4ZWQ3NmYtODE0Ny00YTQ4LTlkZWItNTBkMGQ0MmUwMmJlXkEyXkFqcGc@._V1_QL75_UY562_CR5,0,380,562_.jpg"},{"title":"50 First Dates","year":"2004","type":"Movie","cast":["Adam Sandler","Drew Barrymore","Rob Schneider"],"tags":[],"poster":"https://m.media-amazon.com/images/M/MV5BMjAwMzc4MDgxNF5BMl5BanBnXkFtZTYwNjUwMzE3._V1_QL75_UX380_CR0,1,380,562_.jpg"}];
