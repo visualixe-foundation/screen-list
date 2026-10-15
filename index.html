@@ -6,6 +6,7 @@
 <title>Screen List — My Watchlist</title>
 <meta name="description" content="Personal movie and series watchlist">
 <meta name="theme-color" content="#06070d">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/manifest.webmanifest">
@@ -120,7 +121,7 @@ select,.btn{width:100%}
 <svg viewBox="0 0 40 40" fill="none"><rect x="2" y="6" width="36" height="28" rx="3" stroke="currentColor" stroke-width="2.5"/><circle cx="20" cy="20" r="8" stroke="currentColor" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="currentColor"/><line x1="8" y1="6" x2="8" y2="34" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="32" y1="6" x2="32" y2="34" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/></svg>
 <h1>Screen <span>List</span></h1>
 </div>
-<p class="subtitle">Movies &amp; series worth watching</p>
+<p class="subtitle">Movies & series worth watching</p>
 </header>
 
 <div class="controls-bar" id="controlsBar">
@@ -170,12 +171,14 @@ select,.btn{width:100%}
 <button type="button" class="btn" id="fExport">Export JSON</button>
 <button type="button" class="btn ghost" id="fClose">Close</button>
 </div>
+<div class="form-row"><label>OMDb API key (loads posters)</label><input id="fOmdb" type="text" placeholder="Paste your OMDb key once"></div>
 <div class="form-row" style="margin-top:12px"><label>Change PIN</label><input id="fNewPin" type="password" placeholder="New PIN (optional)"></div>
 <p class="admin-msg" id="adminMsg"></p>
 </div>
 </div>
 </div>
 
+<script src="poster-loader.js"></script>
 <script src="movies.js"></script>
 <script>
 const LS_EXTRA='screenlist_extra',LS_PIN='screenlist_pin',DEFAULT_PIN='1234';
@@ -241,7 +244,7 @@ function renderChips(){
     c.onclick=()=>{actor=c.dataset.a==='All'?'':c.dataset.a;renderChips();render()}
   });
 }
-function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function escapeHtml(s){return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"')}
 function posterBlock(m){
   if(m.poster){
     return '<img class="poster" src="'+escapeHtml(m.poster)+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="poster-ph" style="display:none">'+(m.title?escapeHtml(m.title.charAt(0)):'?')+'</div>';
@@ -308,9 +311,10 @@ function saveMovie(){
   const poster=$('fPoster').value.trim();if(poster) entry.poster=poster;
   const extras=loadExtras();extras.push(entry);saveExtras(extras);
   const newPin=$('fNewPin').value.trim();if(newPin)localStorage.setItem(LS_PIN,newPin);
-  $('adminMsg').textContent='Saved locally';$('adminMsg').className='admin-msg ok';
+  const omdbKey=$('fOmdb')&&$('fOmdb').value.trim();if(omdbKey&&typeof setOmdbKey==='function'){setOmdbKey(omdbKey);fetchPostersFromOmdb(allMovies,function(){render();});$('adminMsg').textContent='Loading posters…';$('adminMsg').className='admin-msg ok';}
+  if(!omdbKey){$('adminMsg').textContent='Saved locally';$('adminMsg').className='admin-msg ok';}
   $('fTitle').value='';$('fYear').value='';$('fCast').value='';$('fTags').value='';$('fPoster').value='';$('fNewPin').value='';
-  mergeMovies();updateStats();renderChips();render();
+  mergeMovies();if(typeof applyPosterCache==='function')applyPosterCache(allMovies);updateStats();renderChips();render();
 }
 function exportJSON(){
   const extras=loadExtras();
@@ -327,10 +331,12 @@ if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});
 }
 mergeMovies();
+if(typeof applyPosterCache==='function')applyPosterCache(allMovies);
 readUrlParams();
 updateStats();
 renderChips();
 render();
+if(typeof fetchPostersFromOmdb==='function'){fetchPostersFromOmdb(allMovies,function(){render();});}
 </script>
 </body>
 </html>
