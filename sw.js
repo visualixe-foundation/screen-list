@@ -1,4 +1,4 @@
-const CACHE = 'screen-list-v4';
+const CACHE = 'screen-list-v5';
 const ASSETS = [
   '/',
   '/index.html',
