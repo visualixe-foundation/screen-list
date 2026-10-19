@@ -1,4 +1,6 @@
 const LS_EXTRA='screenlist_extra',LS_PIN='screenlist_pin',DEFAULT_PIN='1234';
+const SECTION_ORDER=['Movie','Animation','Series','Marvel','DC'];
+const SECTION_LABEL={Movie:'Movies',Animation:'Animation',Series:'Series',Marvel:'Marvel',DC:'DC'};
 let actor='',allMovies=[];
 const $=id=>document.getElementById(id);
 function loadExtras(){try{return JSON.parse(localStorage.getItem(LS_EXTRA)||'[]')}catch(e){return[]}}
@@ -14,24 +16,37 @@ function yearKey(m){
   const n=parseInt(String(m.year).slice(0,4),10);
   return isNaN(n)?'Unknown':String(n);
 }
+function sectionOf(m){
+  const tags=(m.tags||[]).map(t=>String(t).toLowerCase());
+  if(tags.includes('marvel')) return 'Marvel';
+  if(tags.includes('dc')) return 'DC';
+  if(m.type==='Animation') return 'Animation';
+  if(m.type==='Series') return 'Series';
+  return 'Movie';
+}
 function readUrlParams(){
   const p=new URLSearchParams(location.search);
   if(p.has('q')) $('q').value=p.get('q')||'';
-  if(p.has('type')) $('t').value=p.get('type')||'';
-  if(p.has('sort')){const s=p.get('sort');if(['year','az','new','old'].includes(s)) $('o').value=s;}
+  if(p.has('type')){
+    const t=p.get('type')||'';
+    if(['','Movie','Series','Animation','Marvel','DC'].includes(t)) $('t').value=t;
+  }
+  if(p.has('sort')){
+    const s=p.get('sort');
+    if(['section','year','az','new','old'].includes(s)) $('o').value=s;
+  }
   if(p.has('actor')) actor=p.get('actor')||'';
 }
 function writeUrlParams(){
   const p=new URLSearchParams();
   const q=$('q').value.trim();const t=$('t').value;const o=$('o').value;
-  if(q) p.set('q',q);if(t) p.set('type',t);if(o&&o!=='year') p.set('sort',o);if(actor) p.set('actor',actor);
+  if(q) p.set('q',q);if(t) p.set('type',t);if(o&&o!=='section') p.set('sort',o);if(actor) p.set('actor',actor);
   const qs=p.toString();const url=qs?(location.pathname+'?'+qs):location.pathname;
   if(url!==location.pathname+location.search) history.replaceState(null,'',url);
 }
 function updateStats(){
-  const movies=allMovies.filter(m=>m.type==='Movie').length;
-  const series=allMovies.filter(m=>m.type==='Series').length;
-  const animation=allMovies.filter(m=>m.type==='Animation').length;
+  const by={Movie:0,Series:0,Animation:0,Marvel:0,DC:0};
+  allMovies.forEach(m=>{by[sectionOf(m)]=(by[sectionOf(m)]||0)+1});
   const actorCounts={};
   allMovies.forEach(m=>(m.cast||[]).forEach(a=>{actorCounts[a]=(actorCounts[a]||0)+1}));
   const top=Object.entries(actorCounts).sort((a,b)=>b[1]-a[1])[0];
@@ -43,9 +58,11 @@ function updateStats(){
   const topLabel=top?('Top: '+top[0]):'Top actor';
   $('stats').innerHTML=
     '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Titles</span></div>'+
-    '<div class="stat"><span class="stat-num">'+movies+'</span><span class="stat-label">Movies</span></div>'+
-    '<div class="stat"><span class="stat-num">'+series+'</span><span class="stat-label">Series</span></div>'+
-    '<div class="stat"><span class="stat-num">'+animation+'</span><span class="stat-label">Animation</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.Movie+'</span><span class="stat-label">Movies</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.Animation+'</span><span class="stat-label">Animation</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.Series+'</span><span class="stat-label">Series</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.Marvel+'</span><span class="stat-label">Marvel</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.DC+'</span><span class="stat-label">DC</span></div>'+
     '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
     '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
 }
@@ -81,17 +98,37 @@ function posterBlock(m){
 function cardHTML(m){
   const year=m.year?'<span class="year">'+m.year+'</span>':'Year unknown';
   const cast=(m.cast&&m.cast.length)?'<div class="cast">'+m.cast.join(', ')+'</div>':'';
+  const sec=sectionOf(m);
   let typeTag='';
-  if(m.type==='Series') typeTag='<span class="tag series">Series</span>';
-  else if(m.type==='Animation') typeTag='<span class="tag animation">Animation</span>';
+  if(sec==='Series') typeTag='<span class="tag series">Series</span>';
+  else if(sec==='Animation') typeTag='<span class="tag animation">Animation</span>';
+  else if(sec==='Marvel') typeTag='<span class="tag marvel">Marvel</span>';
+  else if(sec==='DC') typeTag='<span class="tag dc">DC</span>';
   const localTag=m._local?'<span class="tag local">Local</span>':'';
-  const extraTags=(m.tags||[]).map(x=>'<span class="tag">'+x+'</span>').join('');
+  const extraTags=(m.tags||[]).filter(x=>{
+    const t=String(x).toLowerCase();
+    return t!=='marvel'&&t!=='dc';
+  }).map(x=>'<span class="tag">'+escapeHtml(x)+'</span>').join('');
   return '<article class="card">'+posterBlock(m)+'<div class="card-body"><h3>'+escapeHtml(m.title)+'</h3><div class="meta">'+year+'</div>'+cast+'<div class="tags">'+typeTag+localTag+extraTags+'</div></div></article>';
+}
+function bindGroupHeaders(){
+  document.querySelectorAll('.year-header').forEach(h=>{
+    h.onclick=()=>h.closest('.year-group').classList.toggle('collapsed');
+  });
+}
+function renderGroups(groups, order, labelFn){
+  $('g').innerHTML=order.filter(k=>groups[k]&&groups[k].length).map(k=>{
+    const films=groups[k];
+    films.sort((a,b)=>a.title.localeCompare(b.title));
+    const label=labelFn(k);
+    return '<div class="year-group"><div class="year-header"><span class="year-label">'+escapeHtml(label)+'</span><div class="year-line"></div><span class="year-count">'+films.length+' title'+(films.length!==1?'s':'')+'</span><svg class="year-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="movie-grid">'+films.map(cardHTML).join('')+'</div></div>';
+  }).join('');
+  bindGroupHeaders();
 }
 function render(){
   const q=$('q').value.toLowerCase().trim(),t=$('t').value,o=$('o').value;
   let list=allMovies.filter(m=>{
-    if(t&&m.type!==t)return false;
+    if(t&&sectionOf(m)!==t)return false;
     if(actor&&!(m.cast||[]).includes(actor))return false;
     if(q){const hay=(m.title+' '+(m.cast||[]).join(' ')).toLowerCase();if(!hay.includes(q))return false}
     return true;
@@ -102,19 +139,19 @@ function render(){
   $('count').textContent=list.length+' of '+allMovies.length+' titles';
   writeUrlParams();
   if(!list.length){
-    $('g').innerHTML='<div class="empty"><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg><h3>No matches</h3><p>Nothing fits that search or filter. Try another actor or clear filters.</p><button type="button" class="btn" id="emptyClear">Clear filters</button></div>';
+    $('g').innerHTML='<div class="empty"><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg><h3>No matches</h3><p>Nothing fits that search or filter. Try another section or clear filters.</p><button type="button" class="btn" id="emptyClear">Clear filters</button></div>';
     const btn=$('emptyClear');if(btn)btn.onclick=()=>{$('q').value='';$('t').value='';actor='';renderChips();render()};
     return;
   }
-  if(o==='year'){
+  if(o==='section'){
+    const groups={};
+    list.forEach(m=>{const s=sectionOf(m);if(!groups[s])groups[s]=[];groups[s].push(m)});
+    renderGroups(groups,SECTION_ORDER,k=>SECTION_LABEL[k]||k);
+  } else if(o==='year'){
     const groups={};
     list.forEach(m=>{const y=yearKey(m);if(!groups[y])groups[y]=[];groups[y].push(m)});
     const years=Object.keys(groups).sort((a,b)=>{if(a==='Unknown')return 1;if(b==='Unknown')return -1;return Number(b)-Number(a)});
-    $('g').innerHTML=years.map(y=>{
-      const films=groups[y];films.sort((a,b)=>a.title.localeCompare(b.title));
-      return '<div class="year-group"><div class="year-header"><span class="year-label">'+y+'</span><div class="year-line"></div><span class="year-count">'+films.length+' title'+(films.length!==1?'s':'')+'</span><svg class="year-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="movie-grid">'+films.map(cardHTML).join('')+'</div></div>';
-    }).join('');
-    document.querySelectorAll('.year-header').forEach(h=>{h.onclick=()=>h.closest('.year-group').classList.toggle('collapsed')});
+    renderGroups(groups,years,k=>k);
   } else {
     $('g').innerHTML='<div class="movie-grid">'+list.map(cardHTML).join('')+'</div>';
   }
