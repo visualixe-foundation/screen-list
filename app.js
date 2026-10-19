@@ -1,7 +1,14 @@
 const LS_EXTRA='screenlist_extra',LS_PIN='screenlist_pin',DEFAULT_PIN='1234';
-const SECTION_ORDER=['Movie','Animation','Series','Marvel','DC'];
-const SECTION_LABEL={Movie:'Movies',Animation:'Animation',Series:'Series',Marvel:'Marvel',DC:'DC'};
-let actor='',allMovies=[];
+const SECTION_ORDER=['Movie','Series','Animation','Marvel','DC'];
+const SECTION_LABEL={Movie:'Movies',Series:'Series',Animation:'Animation',Marvel:'Marvel',DC:'DC'};
+const SECTION_BLURB={
+  Movie:'Live-action films',
+  Series:'TV shows & series',
+  Animation:'Animated titles',
+  Marvel:'Marvel universe',
+  DC:'DC universe'
+};
+let actor='',allMovies=[],view='home';
 const $=id=>document.getElementById(id);
 function loadExtras(){try{return JSON.parse(localStorage.getItem(LS_EXTRA)||'[]')}catch(e){return[]}}
 function saveExtras(list){localStorage.setItem(LS_EXTRA,JSON.stringify(list))}
@@ -24,6 +31,33 @@ function sectionOf(m){
   if(m.type==='Series') return 'Series';
   return 'Movie';
 }
+function sectionCounts(){
+  const by={Movie:0,Series:0,Animation:0,Marvel:0,DC:0};
+  allMovies.forEach(m=>{by[sectionOf(m)]++});
+  return by;
+}
+function showHome(){
+  view='home';
+  actor='';
+  if($('q')) $('q').value='';
+  if($('t')) $('t').value='';
+  $('homeView').classList.remove('hidden');
+  $('browseView').classList.add('hidden');
+  $('subtitle').textContent='Pick a section to browse';
+  renderHome();
+  writeUrlParams();
+}
+function showBrowse(section){
+  view='browse';
+  if(section!==undefined) $('t').value=section||'';
+  $('homeView').classList.add('hidden');
+  $('browseView').classList.remove('hidden');
+  const t=$('t').value;
+  $('subtitle').textContent=t?(SECTION_LABEL[t]||t):'All titles';
+  updateStats();
+  renderChips();
+  render();
+}
 function readUrlParams(){
   const p=new URLSearchParams(location.search);
   if(p.has('q')) $('q').value=p.get('q')||'';
@@ -36,17 +70,42 @@ function readUrlParams(){
     if(['section','year','az','new','old'].includes(s)) $('o').value=s;
   }
   if(p.has('actor')) actor=p.get('actor')||'';
+  const hasBrowse=p.has('type')||p.has('q')||p.has('actor')||p.has('sort')||p.has('all');
+  if(hasBrowse) showBrowse();
+  else showHome();
 }
 function writeUrlParams(){
   const p=new URLSearchParams();
+  if(view==='home'){
+    const qs=p.toString();
+    const url=qs?(location.pathname+'?'+qs):location.pathname;
+    if(url!==location.pathname+location.search) history.replaceState(null,'',url);
+    return;
+  }
   const q=$('q').value.trim();const t=$('t').value;const o=$('o').value;
-  if(q) p.set('q',q);if(t) p.set('type',t);if(o&&o!=='section') p.set('sort',o);if(actor) p.set('actor',actor);
+  if(q) p.set('q',q);if(t) p.set('type',t);if(o&&o!=='year') p.set('sort',o);if(actor) p.set('actor',actor);
+  if(!q&&!t&&!actor&&(!o||o==='year')) p.set('all','1');
   const qs=p.toString();const url=qs?(location.pathname+'?'+qs):location.pathname;
   if(url!==location.pathname+location.search) history.replaceState(null,'',url);
 }
+function renderHome(){
+  const by=sectionCounts();
+  $('sectionList').innerHTML=SECTION_ORDER.map((key,i)=>{
+    const n=String(i+1).padStart(2,'0');
+    const count=by[key]||0;
+    const blurb=SECTION_BLURB[key]||'';
+    return '<button type="button" class="section-row" data-section="'+key+'">'+'
+      <span class="section-num">'+n+'</span>'+
+      '<span class="section-title">'+escapeHtml(SECTION_LABEL[key])+'</span>'+
+      '<span class="section-pill">'+escapeHtml(blurb)+(count?' · '+count:'')+'</span>'+
+    '</button>';
+  }).join('');
+  document.querySelectorAll('.section-row').forEach(row=>{
+    row.onclick=()=>showBrowse(row.dataset.section);
+  });
+}
 function updateStats(){
-  const by={Movie:0,Series:0,Animation:0,Marvel:0,DC:0};
-  allMovies.forEach(m=>{by[sectionOf(m)]=(by[sectionOf(m)]||0)+1});
+  const by=sectionCounts();
   const actorCounts={};
   allMovies.forEach(m=>(m.cast||[]).forEach(a=>{actorCounts[a]=(actorCounts[a]||0)+1}));
   const top=Object.entries(actorCounts).sort((a,b)=>b[1]-a[1])[0];
@@ -56,19 +115,30 @@ function updateStats(){
   const range=yMin===yMax?yMin:(yMin+'\u2013'+yMax);
   const topName=top?top[0].split(' ')[0]:'\u2014';
   const topLabel=top?('Top: '+top[0]):'Top actor';
-  $('stats').innerHTML=
-    '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Titles</span></div>'+
-    '<div class="stat"><span class="stat-num">'+by.Movie+'</span><span class="stat-label">Movies</span></div>'+
-    '<div class="stat"><span class="stat-num">'+by.Animation+'</span><span class="stat-label">Animation</span></div>'+
-    '<div class="stat"><span class="stat-num">'+by.Series+'</span><span class="stat-label">Series</span></div>'+
-    '<div class="stat"><span class="stat-num">'+by.Marvel+'</span><span class="stat-label">Marvel</span></div>'+
-    '<div class="stat"><span class="stat-num">'+by.DC+'</span><span class="stat-label">DC</span></div>'+
-    '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
-    '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
+  const t=$('t').value;
+  if(t){
+    $('stats').innerHTML=
+      '<div class="stat"><span class="stat-num">'+(by[t]||0)+'</span><span class="stat-label">'+escapeHtml(SECTION_LABEL[t]||t)+'</span></div>'+
+      '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Total</span></div>'+
+      '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
+      '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
+  } else {
+    $('stats').innerHTML=
+      '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Titles</span></div>'+
+      '<div class="stat"><span class="stat-num">'+by.Movie+'</span><span class="stat-label">Movies</span></div>'+
+      '<div class="stat"><span class="stat-num">'+by.Animation+'</span><span class="stat-label">Animation</span></div>'+
+      '<div class="stat"><span class="stat-num">'+by.Series+'</span><span class="stat-label">Series</span></div>'+
+      '<div class="stat"><span class="stat-num">'+by.Marvel+'</span><span class="stat-label">Marvel</span></div>'+
+      '<div class="stat"><span class="stat-num">'+by.DC+'</span><span class="stat-label">DC</span></div>'+
+      '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
+      '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
+  }
 }
 function buildChips(){
   const counts={};
-  allMovies.forEach(m=>(m.cast||[]).forEach(a=>{counts[a]=(counts[a]||0)+1}));
+  const t=$('t').value;
+  const pool=t?allMovies.filter(m=>sectionOf(m)===t):allMovies;
+  pool.forEach(m=>(m.cast||[]).forEach(a=>{counts[a]=(counts[a]||0)+1}));
   return Object.entries(counts).filter(e=>e[1]>=2).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
 }
 function renderChips(){
@@ -126,7 +196,9 @@ function renderGroups(groups, order, labelFn){
   bindGroupHeaders();
 }
 function render(){
+  if(view!=='browse') return;
   const q=$('q').value.toLowerCase().trim(),t=$('t').value,o=$('o').value;
+  $('subtitle').textContent=t?(SECTION_LABEL[t]||t):'All titles';
   let list=allMovies.filter(m=>{
     if(t&&sectionOf(m)!==t)return false;
     if(actor&&!(m.cast||[]).includes(actor))return false;
@@ -136,14 +208,14 @@ function render(){
   if(o==='az')list.sort((a,b)=>a.title.localeCompare(b.title));
   else if(o==='new')list.sort((a,b)=>(parseInt(b.year)||0)-(parseInt(a.year)||0));
   else if(o==='old')list.sort((a,b)=>(parseInt(a.year)||9999)-(parseInt(b.year)||9999));
-  $('count').textContent=list.length+' of '+allMovies.length+' titles';
+  $('count').textContent=list.length+' of '+(t?sectionCounts()[t]:allMovies.length)+' titles';
   writeUrlParams();
   if(!list.length){
     $('g').innerHTML='<div class="empty"><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg><h3>No matches</h3><p>Nothing fits that search or filter. Try another section or clear filters.</p><button type="button" class="btn" id="emptyClear">Clear filters</button></div>';
-    const btn=$('emptyClear');if(btn)btn.onclick=()=>{$('q').value='';$('t').value='';actor='';renderChips();render()};
+    const btn=$('emptyClear');if(btn)btn.onclick=()=>{$('q').value='';actor='';renderChips();render()};
     return;
   }
-  if(o==='section'){
+  if(o==='section'&&!t){
     const groups={};
     list.forEach(m=>{const s=sectionOf(m);if(!groups[s])groups[s]=[];groups[s].push(m)});
     renderGroups(groups,SECTION_ORDER,k=>SECTION_LABEL[k]||k);
@@ -169,10 +241,12 @@ function saveMovie(){
   const poster=$('fPoster').value.trim();if(poster) entry.poster=poster;
   const extras=loadExtras();extras.push(entry);saveExtras(extras);
   const newPin=$('fNewPin').value.trim();if(newPin)localStorage.setItem(LS_PIN,newPin);
-  const omdbKey=$('fOmdb')&&$('fOmdb').value.trim();if(omdbKey&&typeof setOmdbKey==='function'){setOmdbKey(omdbKey);fetchPostersFromOmdb(allMovies,function(){render();});$('adminMsg').textContent='Loading posters\u2026';$('adminMsg').className='admin-msg ok';}
+  const omdbKey=$('fOmdb')&&$('fOmdb').value.trim();if(omdbKey&&typeof setOmdbKey==='function'){setOmdbKey(omdbKey);fetchPostersFromOmdb(allMovies,function(){if(view==='browse')render();});$('adminMsg').textContent='Loading posters\u2026';$('adminMsg').className='admin-msg ok';}
   if(!omdbKey){$('adminMsg').textContent='Saved locally';$('adminMsg').className='admin-msg ok';}
   $('fTitle').value='';$('fYear').value='';$('fCast').value='';$('fTags').value='';$('fPoster').value='';$('fNewPin').value='';
-  mergeMovies();if(typeof applyPosterCache==='function')applyPosterCache(allMovies);updateStats();renderChips();render();
+  mergeMovies();if(typeof applyPosterCache==='function')applyPosterCache(allMovies);
+  if(view==='home') renderHome();
+  else {updateStats();renderChips();render();}
 }
 function exportJSON(){
   const extras=loadExtras();
@@ -180,19 +254,28 @@ function exportJSON(){
   const text=extras.map(m=>JSON.stringify(m,null,2)).join(',\n');
   navigator.clipboard.writeText(text).then(()=>{$('adminMsg').textContent='Copied \u2014 paste into movies.js';$('adminMsg').className='admin-msg ok'}).catch(()=>{console.log(text);$('adminMsg').textContent='See console';$('adminMsg').className='admin-msg err'});
 }
-$('adminBtn').onclick=openAdmin;$('pinCancel').onclick=closeAdmin;$('pinSubmit').onclick=unlockAdmin;
+$('adminBtn').onclick=openAdmin;
+$('adminBtnHome').onclick=openAdmin;
+$('browseAllBtn').onclick=()=>showBrowse('');
+$('backHome').onclick=showHome;
+$('pinCancel').onclick=closeAdmin;$('pinSubmit').onclick=unlockAdmin;
 $('pinInput').onkeydown=e=>{if(e.key==='Enter')unlockAdmin()};
 $('fClose').onclick=closeAdmin;$('fSave').onclick=saveMovie;$('fExport').onclick=exportJSON;
 $('adminModal').addEventListener('click',e=>{if(e.target===$('adminModal'))closeAdmin()});
-document.addEventListener('keydown',function(e){if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('q').focus();}});
-['q','t','o'].forEach(id=>$(id).addEventListener('input',render));
+document.addEventListener('keydown',function(e){
+  if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){
+    if(view==='browse'){e.preventDefault();$('q').focus();}
+  }
+  if(e.key==='Escape'&&view==='browse') showHome();
+});
+['q','t','o'].forEach(id=>$(id).addEventListener('input',()=>{
+  if(id==='t'){actor='';updateStats();renderChips();}
+  render();
+}));
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});
 }
 mergeMovies();
 if(typeof applyPosterCache==='function')applyPosterCache(allMovies);
 readUrlParams();
-updateStats();
-renderChips();
-render();
-if(typeof fetchPostersFromOmdb==='function'){fetchPostersFromOmdb(allMovies,function(){render();});}
+if(typeof fetchPostersFromOmdb==='function'){fetchPostersFromOmdb(allMovies,function(){if(view==='browse')render();});}
