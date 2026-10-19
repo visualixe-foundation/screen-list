@@ -102,6 +102,16 @@ function renderHome(){
   });
 }
 function updateStats(){
+  const el=$('stats');
+  if(!el) return;
+  const t=$('t').value;
+  // Hide stats when inside a specific section
+  if(t){
+    el.classList.add('hidden');
+    el.innerHTML='';
+    return;
+  }
+  el.classList.remove('hidden');
   const by=sectionCounts();
   const actorCounts={};
   allMovies.forEach(m=>(m.cast||[]).forEach(a=>{actorCounts[a]=(actorCounts[a]||0)+1}));
@@ -112,24 +122,15 @@ function updateStats(){
   const range=yMin===yMax?yMin:(yMin+'\u2013'+yMax);
   const topName=top?top[0].split(' ')[0]:'\u2014';
   const topLabel=top?('Top: '+top[0]):'Top actor';
-  const t=$('t').value;
-  if(t){
-    $('stats').innerHTML=
-      '<div class="stat"><span class="stat-num">'+(by[t]||0)+'</span><span class="stat-label">'+escapeHtml(SECTION_LABEL[t]||t)+'</span></div>'+
-      '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Total</span></div>'+
-      '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
-      '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
-  } else {
-    $('stats').innerHTML=
-      '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Titles</span></div>'+
-      '<div class="stat"><span class="stat-num">'+by.Movie+'</span><span class="stat-label">Movies</span></div>'+
-      '<div class="stat"><span class="stat-num">'+by.Animation+'</span><span class="stat-label">Animation</span></div>'+
-      '<div class="stat"><span class="stat-num">'+by.Series+'</span><span class="stat-label">Series</span></div>'+
-      '<div class="stat"><span class="stat-num">'+by.Marvel+'</span><span class="stat-label">Marvel</span></div>'+
-      '<div class="stat"><span class="stat-num">'+by.DC+'</span><span class="stat-label">DC</span></div>'+
-      '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
-      '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
-  }
+  el.innerHTML=
+    '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Titles</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.Movie+'</span><span class="stat-label">Movies</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.Animation+'</span><span class="stat-label">Animation</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.Series+'</span><span class="stat-label">Series</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.Marvel+'</span><span class="stat-label">Marvel</span></div>'+
+    '<div class="stat"><span class="stat-num">'+by.DC+'</span><span class="stat-label">DC</span></div>'+
+    '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
+    '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
 }
 function buildChips(){
   const counts={};
