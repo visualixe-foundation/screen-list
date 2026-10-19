@@ -1,0 +1,150 @@
+const LS_EXTRA='screenlist_extra',LS_PIN='screenlist_pin',DEFAULT_PIN='1234';
+let actor='',allMovies=[];
+const $=id=>document.getElementById(id);
+function loadExtras(){try{return JSON.parse(localStorage.getItem(LS_EXTRA)||'[]')}catch(e){return[]}}
+function saveExtras(list){localStorage.setItem(LS_EXTRA,JSON.stringify(list))}
+function getPin(){return localStorage.getItem(LS_PIN)||DEFAULT_PIN}
+function mergeMovies(){
+  const extras=loadExtras().map(m=>({...m,_local:true}));
+  const keys=new Set(MOVIES.map(m=>(m.title+'|'+(m.year||'')).toLowerCase()));
+  allMovies=[...MOVIES,...extras.filter(m=>!keys.has((m.title+'|'+(m.year||'')).toLowerCase()))];
+}
+function yearKey(m){
+  if(!m.year)return 'Unknown';
+  const n=parseInt(String(m.year).slice(0,4),10);
+  return isNaN(n)?'Unknown':String(n);
+}
+function readUrlParams(){
+  const p=new URLSearchParams(location.search);
+  if(p.has('q')) $('q').value=p.get('q')||'';
+  if(p.has('type')) $('t').value=p.get('type')||'';
+  if(p.has('sort')){const s=p.get('sort');if(['year','az','new','old'].includes(s)) $('o').value=s;}
+  if(p.has('actor')) actor=p.get('actor')||'';
+}
+function writeUrlParams(){
+  const p=new URLSearchParams();
+  const q=$('q').value.trim();const t=$('t').value;const o=$('o').value;
+  if(q) p.set('q',q);if(t) p.set('type',t);if(o&&o!=='year') p.set('sort',o);if(actor) p.set('actor',actor);
+  const qs=p.toString();const url=qs?(location.pathname+'?'+qs):location.pathname;
+  if(url!==location.pathname+location.search) history.replaceState(null,'',url);
+}
+function updateStats(){
+  const movies=allMovies.filter(m=>m.type==='Movie').length;
+  const series=allMovies.filter(m=>m.type==='Series').length;
+  const actorCounts={};
+  allMovies.forEach(m=>(m.cast||[]).forEach(a=>{actorCounts[a]=(actorCounts[a]||0)+1}));
+  const top=Object.entries(actorCounts).sort((a,b)=>b[1]-a[1])[0];
+  const years=allMovies.map(yearKey).filter(y=>y!=='Unknown').map(Number).filter(n=>!isNaN(n));
+  const yMin=years.length?Math.min(...years):'\u2014';
+  const yMax=years.length?Math.max(...years):'\u2014';
+  const range=yMin===yMax?yMin:(yMin+'\u2013'+yMax);
+  const topName=top?top[0].split(' ')[0]:'\u2014';
+  const topLabel=top?('Top: '+top[0]):'Top actor';
+  $('stats').innerHTML=
+    '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Titles</span></div>'+
+    '<div class="stat"><span class="stat-num">'+movies+'</span><span class="stat-label">Movies</span></div>'+
+    '<div class="stat"><span class="stat-num">'+series+'</span><span class="stat-label">Series</span></div>'+
+    '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
+    '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
+}
+function buildChips(){
+  const counts={};
+  allMovies.forEach(m=>(m.cast||[]).forEach(a=>{counts[a]=(counts[a]||0)+1}));
+  return Object.entries(counts).filter(e=>e[1]>=2).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
+}
+function renderChips(){
+  const topActors=buildChips();
+  $('chips').innerHTML=['All',...topActors].map(a=>
+    '<span class="chip '+((a==='All'?actor==='':a===actor)?'on':'')+'" data-a="'+a+'">'+a+'</span>'
+  ).join('');
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.onclick=()=>{actor=c.dataset.a==='All'?'':c.dataset.a;renderChips();render()}
+  });
+}
+function escapeHtml(s){return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"').replace(/'/g,'&#39;')}
+function posterBlock(m){
+  if(m.poster){
+    return '<img class="poster" src="'+escapeHtml(m.poster)+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="poster-ph" style="display:none">'+(m.title?escapeHtml(m.title.charAt(0)):'?')+'</div>';
+  }
+  const letter=m.title?escapeHtml(m.title.charAt(0).toUpperCase()):'?';
+  return '<div class="poster-ph">'+letter+'</div>';
+}
+function cardHTML(m){
+  const year=m.year?'<span class="year">'+m.year+'</span>':'Year unknown';
+  const cast=(m.cast&&m.cast.length)?'<div class="cast">'+m.cast.join(', ')+'</div>':'';
+  const typeTag=m.type==='Series'?'<span class="tag series">Series</span>':'';
+  const localTag=m._local?'<span class="tag local">Local</span>':'';
+  const extraTags=(m.tags||[]).map(x=>'<span class="tag">'+x+'</span>').join('');
+  return '<article class="card">'+posterBlock(m)+'<div class="card-body"><h3>'+escapeHtml(m.title)+'</h3><div class="meta">'+year+'</div>'+cast+'<div class="tags">'+typeTag+localTag+extraTags+'</div></div></article>';
+}
+function render(){
+  const q=$('q').value.toLowerCase().trim(),t=$('t').value,o=$('o').value;
+  let list=allMovies.filter(m=>{
+    if(t&&m.type!==t)return false;
+    if(actor&&!(m.cast||[]).includes(actor))return false;
+    if(q){const hay=(m.title+' '+(m.cast||[]).join(' ')).toLowerCase();if(!hay.includes(q))return false}
+    return true;
+  });
+  if(o==='az')list.sort((a,b)=>a.title.localeCompare(b.title));
+  else if(o==='new')list.sort((a,b)=>(parseInt(b.year)||0)-(parseInt(a.year)||0));
+  else if(o==='old')list.sort((a,b)=>(parseInt(a.year)||9999)-(parseInt(b.year)||9999));
+  $('count').textContent=list.length+' of '+allMovies.length+' titles';
+  writeUrlParams();
+  if(!list.length){
+    $('g').innerHTML='<div class="empty"><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg><h3>No matches</h3><p>Nothing fits that search or filter. Try another actor or clear filters.</p><button type="button" class="btn" id="emptyClear">Clear filters</button></div>';
+    const btn=$('emptyClear');if(btn)btn.onclick=()=>{$('q').value='';$('t').value='';actor='';renderChips();render()};
+    return;
+  }
+  if(o==='year'){
+    const groups={};
+    list.forEach(m=>{const y=yearKey(m);if(!groups[y])groups[y]=[];groups[y].push(m)});
+    const years=Object.keys(groups).sort((a,b)=>{if(a==='Unknown')return 1;if(b==='Unknown')return -1;return Number(b)-Number(a)});
+    $('g').innerHTML=years.map(y=>{
+      const films=groups[y];films.sort((a,b)=>a.title.localeCompare(b.title));
+      return '<div class="year-group"><div class="year-header"><span class="year-label">'+y+'</span><div class="year-line"></div><span class="year-count">'+films.length+' title'+(films.length!==1?'s':'')+'</span><svg class="year-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="movie-grid">'+films.map(cardHTML).join('')+'</div></div>';
+    }).join('');
+    document.querySelectorAll('.year-header').forEach(h=>{h.onclick=()=>h.closest('.year-group').classList.toggle('collapsed')});
+  } else {
+    $('g').innerHTML='<div class="movie-grid">'+list.map(cardHTML).join('')+'</div>';
+  }
+}
+function openAdmin(){$('adminModal').classList.add('open');$('pinGate').style.display='block';$('adminForm').style.display='none';$('pinInput').value='';$('pinMsg').textContent='';$('pinInput').focus()}
+function closeAdmin(){$('adminModal').classList.remove('open')}
+function unlockAdmin(){
+  if($('pinInput').value===getPin()){$('pinGate').style.display='none';$('adminForm').style.display='block';$('adminMsg').textContent='';}
+  else{$('pinMsg').textContent='Wrong PIN';$('pinMsg').className='admin-msg err'}
+}
+function saveMovie(){
+  const title=$('fTitle').value.trim();
+  if(!title){$('adminMsg').textContent='Title is required';$('adminMsg').className='admin-msg err';return}
+  const entry={title,year:$('fYear').value.trim(),type:$('fType').value,cast:$('fCast').value.split(',').map(s=>s.trim()).filter(Boolean),tags:$('fTags').value.split(',').map(s=>s.trim()).filter(Boolean)};
+  const poster=$('fPoster').value.trim();if(poster) entry.poster=poster;
+  const extras=loadExtras();extras.push(entry);saveExtras(extras);
+  const newPin=$('fNewPin').value.trim();if(newPin)localStorage.setItem(LS_PIN,newPin);
+  const omdbKey=$('fOmdb')&&$('fOmdb').value.trim();if(omdbKey&&typeof setOmdbKey==='function'){setOmdbKey(omdbKey);fetchPostersFromOmdb(allMovies,function(){render();});$('adminMsg').textContent='Loading posters…';$('adminMsg').className='admin-msg ok';}
+  if(!omdbKey){$('adminMsg').textContent='Saved locally';$('adminMsg').className='admin-msg ok';}
+  $('fTitle').value='';$('fYear').value='';$('fCast').value='';$('fTags').value='';$('fPoster').value='';$('fNewPin').value='';
+  mergeMovies();if(typeof applyPosterCache==='function')applyPosterCache(allMovies);updateStats();renderChips();render();
+}
+function exportJSON(){
+  const extras=loadExtras();
+  if(!extras.length){$('adminMsg').textContent='No local titles yet';$('adminMsg').className='admin-msg err';return}
+  const text=extras.map(m=>JSON.stringify(m,null,2)).join(',\n');
+  navigator.clipboard.writeText(text).then(()=>{$('adminMsg').textContent='Copied — paste into movies.js';$('adminMsg').className='admin-msg ok'}).catch(()=>{console.log(text);$('adminMsg').textContent='See console';$('adminMsg').className='admin-msg err'});
+}
+$('adminBtn').onclick=openAdmin;$('pinCancel').onclick=closeAdmin;$('pinSubmit').onclick=unlockAdmin;
+$('pinInput').onkeydown=e=>{if(e.key==='Enter')unlockAdmin()};
+$('fClose').onclick=closeAdmin;$('fSave').onclick=saveMovie;$('fExport').onclick=exportJSON;
+$('adminModal').addEventListener('click',e=>{if(e.target===$('adminModal'))closeAdmin()});
+document.addEventListener('keydown',function(e){if(e.key==='/'&&!e.ctrlKey&&!e.metaKey&&!['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)){e.preventDefault();$('q').focus();}});
+['q','t','o'].forEach(id=>$(id).addEventListener('input',render));
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{});});
+}
+mergeMovies();
+if(typeof applyPosterCache==='function')applyPosterCache(allMovies);
+readUrlParams();
+updateStats();
+renderChips();
+render();
+if(typeof fetchPostersFromOmdb==='function'){fetchPostersFromOmdb(allMovies,function(){render();});}
