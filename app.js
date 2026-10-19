@@ -199,7 +199,7 @@ function renderGroups(groups, order, labelFn){
     const films=groups[k];
     films.sort((a,b)=>a.title.localeCompare(b.title));
     const label=labelFn(k);
-    return '<div class="year-group"><div class="year-header"><span class="year-label">'+escapeHtml(label)+'</span><div class="year-line"></div><span class="year-count">'+films.length+' title'+(films.length!==1?'s':'')+'</span><svg class="year-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="movie-grid">'+films.map(cardHTML).join('')+'</div></div>';
+    return '<div class="year-group"><div class="year-header"><div class="year-line"></div><span class="year-label">'+escapeHtml(label)+'</span><div class="year-line"></div><span class="year-count">'+films.length+' title'+(films.length!==1?'s':'')+'</span><svg class="year-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></div><div class="movie-grid">'+films.map(cardHTML).join('')+'</div></div>';
   }).join('');
   bindGroupHeaders();
 }
