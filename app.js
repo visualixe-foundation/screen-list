@@ -143,7 +143,6 @@ function renderChips(){
   const el=$('chips');
   if(!el) return;
   const t=$('t').value;
-  // Hide actor chips when inside a specific section
   if(t){
     el.classList.add('hidden');
     el.innerHTML='';
@@ -217,7 +216,16 @@ function render(){
   if(o==='az')list.sort((a,b)=>a.title.localeCompare(b.title));
   else if(o==='new')list.sort((a,b)=>(parseInt(b.year)||0)-(parseInt(a.year)||0));
   else if(o==='old')list.sort((a,b)=>(parseInt(a.year)||9999)-(parseInt(b.year)||9999));
-  $('count').textContent=list.length+' of '+(t?sectionCounts()[t]:allMovies.length)+' titles';
+  const countEl=$('count');
+  if(countEl){
+    if(t){
+      countEl.classList.add('hidden');
+      countEl.textContent='';
+    } else {
+      countEl.classList.remove('hidden');
+      countEl.textContent=list.length+' of '+allMovies.length+' titles';
+    }
+  }
   writeUrlParams();
   if(!list.length){
     $('g').innerHTML='<div class="empty"><svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/></svg><h3>No matches</h3><p>Nothing fits that search or filter. Try another section or clear filters.</p><button type="button" class="btn" id="emptyClear">Clear filters</button></div>';
