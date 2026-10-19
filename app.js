@@ -54,6 +54,7 @@ function showBrowse(section){
   $('browseView').classList.remove('hidden');
   const t=$('t').value;
   $('subtitle').textContent=t?(SECTION_LABEL[t]||t):'All titles';
+  if(t) actor='';
   updateStats();
   renderChips();
   render();
@@ -105,7 +106,6 @@ function updateStats(){
   const el=$('stats');
   if(!el) return;
   const t=$('t').value;
-  // Hide stats when inside a specific section
   if(t){
     el.classList.add('hidden');
     el.innerHTML='';
@@ -140,8 +140,19 @@ function buildChips(){
   return Object.entries(counts).filter(e=>e[1]>=2).sort((a,b)=>b[1]-a[1]).map(e=>e[0]);
 }
 function renderChips(){
+  const el=$('chips');
+  if(!el) return;
+  const t=$('t').value;
+  // Hide actor chips when inside a specific section
+  if(t){
+    el.classList.add('hidden');
+    el.innerHTML='';
+    actor='';
+    return;
+  }
+  el.classList.remove('hidden');
   const topActors=buildChips();
-  $('chips').innerHTML=['All',...topActors].map(a=>
+  el.innerHTML=['All',...topActors].map(a=>
     '<span class="chip '+((a==='All'?actor==='':a===actor)?'on':'')+'" data-a="'+a+'">'+a+'</span>'
   ).join('');
   document.querySelectorAll('.chip').forEach(c=>{
