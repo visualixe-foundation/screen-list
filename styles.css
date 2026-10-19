@@ -48,11 +48,11 @@ select{cursor:pointer;min-width:120px}
 .stat-label{font-size:.7rem;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
 #count{color:var(--mu);font-size:.85rem;margin-bottom:12px}
 .year-group{margin-bottom:16px}
-.year-header{display:flex;align-items:center;gap:10px;margin-bottom:8px;cursor:pointer;user-select:none;padding:2px 0}
+.year-header{display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer;user-select:none;padding:2px 0}
 .year-header:hover .year-label{color:var(--ac)}
-.year-label{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700}
-.year-line{flex:1;height:1px;background:var(--border)}
-.year-count{color:var(--mu);font-size:.8rem;white-space:nowrap}
+.year-line{flex:1;height:1px;background:var(--border);min-width:12px}
+.year-label{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;flex-shrink:0;text-align:center}
+.year-count{color:var(--mu);font-size:.8rem;white-space:nowrap;flex-shrink:0}
 .year-chevron{color:var(--mu);transition:transform .2s;flex-shrink:0}
 .year-group.collapsed .year-chevron{transform:rotate(-90deg)}
 .year-group.collapsed .movie-grid{display:none}
