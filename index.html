@@ -25,7 +25,7 @@
 <svg viewBox="0 0 40 40" fill="none"><rect x="2" y="6" width="36" height="28" rx="3" stroke="currentColor" stroke-width="2.5"/><circle cx="20" cy="20" r="8" stroke="currentColor" stroke-width="2"/><circle cx="20" cy="20" r="3" fill="currentColor"/><line x1="8" y1="6" x2="8" y2="34" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/><line x1="32" y1="6" x2="32" y2="34" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/></svg>
 <h1>Screen <span>List</span></h1>
 </div>
-<p class="subtitle">Movies, series & animation worth watching</p>
+<p class="subtitle">Movies, series, animation, Marvel & DC</p>
 </header>
 
 <div class="controls-bar" id="controlsBar">
@@ -35,8 +35,21 @@
 <input id="q" type="search" placeholder="Search title or actor..." autocomplete="off">
 <span class="kbd">/</span>
 </div>
-<select id="t"><option value="">All types</option><option value="Movie">Movie</option><option value="Series">Series</option><option value="Animation">Animation</option></select>
-<select id="o"><option value="year">By year</option><option value="az">A → Z</option><option value="new">Newest first</option><option value="old">Oldest first</option></select>
+<select id="t">
+<option value="">All sections</option>
+<option value="Movie">Movies</option>
+<option value="Series">Series</option>
+<option value="Animation">Animation</option>
+<option value="Marvel">Marvel</option>
+<option value="DC">DC</option>
+</select>
+<select id="o">
+<option value="section">By section</option>
+<option value="year">By year</option>
+<option value="az">A → Z</option>
+<option value="new">Newest first</option>
+<option value="old">Oldest first</option>
+</select>
 <button type="button" class="btn" id="adminBtn">+ Add</button>
 </div>
 <div class="chips" id="chips"></div>
@@ -69,7 +82,7 @@
 <div class="form-row"><label>Type</label><select id="fType"><option value="Movie">Movie</option><option value="Series">Series</option><option value="Animation">Animation</option></select></div>
 <div class="form-row"><label>Cast (comma-separated)</label><input id="fCast" type="text" placeholder="Actor One, Actor Two"></div>
 <div class="form-row"><label>Poster URL (optional)</label><input id="fPoster" type="url" placeholder="https://..."></div>
-<div class="form-row"><label>Tags</label><input id="fTags" type="text" placeholder="Optional tags"></div>
+<div class="form-row"><label>Tags</label><input id="fTags" type="text" placeholder="Marvel, DC (optional)"></div>
 <div class="form-actions">
 <button type="button" class="btn primary" id="fSave">Save</button>
 <button type="button" class="btn" id="fExport">Export JSON</button>
