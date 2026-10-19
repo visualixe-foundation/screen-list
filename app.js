@@ -31,6 +31,7 @@ function writeUrlParams(){
 function updateStats(){
   const movies=allMovies.filter(m=>m.type==='Movie').length;
   const series=allMovies.filter(m=>m.type==='Series').length;
+  const animation=allMovies.filter(m=>m.type==='Animation').length;
   const actorCounts={};
   allMovies.forEach(m=>(m.cast||[]).forEach(a=>{actorCounts[a]=(actorCounts[a]||0)+1}));
   const top=Object.entries(actorCounts).sort((a,b)=>b[1]-a[1])[0];
@@ -44,6 +45,7 @@ function updateStats(){
     '<div class="stat"><span class="stat-num">'+allMovies.length+'</span><span class="stat-label">Titles</span></div>'+
     '<div class="stat"><span class="stat-num">'+movies+'</span><span class="stat-label">Movies</span></div>'+
     '<div class="stat"><span class="stat-num">'+series+'</span><span class="stat-label">Series</span></div>'+
+    '<div class="stat"><span class="stat-num">'+animation+'</span><span class="stat-label">Animation</span></div>'+
     '<div class="stat"><span class="stat-num">'+topName+'</span><span class="stat-label">'+topLabel+'</span></div>'+
     '<div class="stat"><span class="stat-num">'+range+'</span><span class="stat-label">Years</span></div>';
 }
@@ -79,7 +81,9 @@ function posterBlock(m){
 function cardHTML(m){
   const year=m.year?'<span class="year">'+m.year+'</span>':'Year unknown';
   const cast=(m.cast&&m.cast.length)?'<div class="cast">'+m.cast.join(', ')+'</div>':'';
-  const typeTag=m.type==='Series'?'<span class="tag series">Series</span>':'';
+  let typeTag='';
+  if(m.type==='Series') typeTag='<span class="tag series">Series</span>';
+  else if(m.type==='Animation') typeTag='<span class="tag animation">Animation</span>';
   const localTag=m._local?'<span class="tag local">Local</span>':'';
   const extraTags=(m.tags||[]).map(x=>'<span class="tag">'+x+'</span>').join('');
   return '<article class="card">'+posterBlock(m)+'<div class="card-body"><h3>'+escapeHtml(m.title)+'</h3><div class="meta">'+year+'</div>'+cast+'<div class="tags">'+typeTag+localTag+extraTags+'</div></div></article>';
@@ -128,7 +132,7 @@ function saveMovie(){
   const poster=$('fPoster').value.trim();if(poster) entry.poster=poster;
   const extras=loadExtras();extras.push(entry);saveExtras(extras);
   const newPin=$('fNewPin').value.trim();if(newPin)localStorage.setItem(LS_PIN,newPin);
-  const omdbKey=$('fOmdb')&&$('fOmdb').value.trim();if(omdbKey&&typeof setOmdbKey==='function'){setOmdbKey(omdbKey);fetchPostersFromOmdb(allMovies,function(){render();});$('adminMsg').textContent='Loading posters…';$('adminMsg').className='admin-msg ok';}
+  const omdbKey=$('fOmdb')&&$('fOmdb').value.trim();if(omdbKey&&typeof setOmdbKey==='function'){setOmdbKey(omdbKey);fetchPostersFromOmdb(allMovies,function(){render();});$('adminMsg').textContent='Loading posters\u2026';$('adminMsg').className='admin-msg ok';}
   if(!omdbKey){$('adminMsg').textContent='Saved locally';$('adminMsg').className='admin-msg ok';}
   $('fTitle').value='';$('fYear').value='';$('fCast').value='';$('fTags').value='';$('fPoster').value='';$('fNewPin').value='';
   mergeMovies();if(typeof applyPosterCache==='function')applyPosterCache(allMovies);updateStats();renderChips();render();
@@ -137,7 +141,7 @@ function exportJSON(){
   const extras=loadExtras();
   if(!extras.length){$('adminMsg').textContent='No local titles yet';$('adminMsg').className='admin-msg err';return}
   const text=extras.map(m=>JSON.stringify(m,null,2)).join(',\n');
-  navigator.clipboard.writeText(text).then(()=>{$('adminMsg').textContent='Copied — paste into movies.js';$('adminMsg').className='admin-msg ok'}).catch(()=>{console.log(text);$('adminMsg').textContent='See console';$('adminMsg').className='admin-msg err'});
+  navigator.clipboard.writeText(text).then(()=>{$('adminMsg').textContent='Copied \u2014 paste into movies.js';$('adminMsg').className='admin-msg ok'}).catch(()=>{console.log(text);$('adminMsg').textContent='See console';$('adminMsg').className='admin-msg err'});
 }
 $('adminBtn').onclick=openAdmin;$('pinCancel').onclick=closeAdmin;$('pinSubmit').onclick=unlockAdmin;
 $('pinInput').onkeydown=e=>{if(e.key==='Enter')unlockAdmin()};
