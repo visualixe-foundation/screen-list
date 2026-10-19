@@ -61,7 +61,14 @@ function renderChips(){
     c.onclick=()=>{actor=c.dataset.a==='All'?'':c.dataset.a;renderChips();render()}
   });
 }
-function escapeHtml(s){return String(s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>').replace(/"/g,'"').replace(/'/g,'&#39;')}
+function escapeHtml(s){
+  return String(s)
+    .replace(/\u0026/g,'\u0026amp;')
+    .replace(/\u003c/g,'\u0026lt;')
+    .replace(/\u003e/g,'\u0026gt;')
+    .replace(/\u0022/g,'\u0026quot;')
+    .replace(/'/g,'\u0026#39;');
+}
 function posterBlock(m){
   if(m.poster){
     return '<img class="poster" src="'+escapeHtml(m.poster)+'" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\'"><div class="poster-ph" style="display:none">'+(m.title?escapeHtml(m.title.charAt(0)):'?')+'</div>';
