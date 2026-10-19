@@ -1,10 +1,11 @@
-const CACHE = 'screen-list-v6';
+const CACHE = 'screen-list-v7';
 const ASSETS = [
   '/',
   '/index.html',
   '/styles.css',
   '/app.js',
   '/movies.js',
+  '/movies-extra.js',
   '/posters.js',
   '/poster-loader.js',
   '/manifest.webmanifest',
