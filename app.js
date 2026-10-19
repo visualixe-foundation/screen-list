@@ -94,11 +94,8 @@ function renderHome(){
     const n=String(i+1).padStart(2,'0');
     const count=by[key]||0;
     const blurb=SECTION_BLURB[key]||'';
-    return '<button type="button" class="section-row" data-section="'+key+'">'+'
-      <span class="section-num">'+n+'</span>'+
-      '<span class="section-title">'+escapeHtml(SECTION_LABEL[key])+'</span>'+
-      '<span class="section-pill">'+escapeHtml(blurb)+(count?' · '+count:'')+'</span>'+
-    '</button>';
+    const pill=escapeHtml(blurb)+(count?' \u00b7 '+count:'');
+    return '<button type="button" class="section-row" data-section="'+key+'">'+'<span class="section-num">'+n+'</span>'+'<span class="section-title">'+escapeHtml(SECTION_LABEL[key])+'</span>'+'<span class="section-pill">'+pill+'</span>'+'</button>';
   }).join('');
   document.querySelectorAll('.section-row').forEach(row=>{
     row.onclick=()=>showBrowse(row.dataset.section);
