@@ -9,9 +9,7 @@ const ASSETS = [
   '/posters.js',
   '/poster-loader.js',
   '/manifest.webmanifest',
-  '/icon.svg',
-  '/icon-192.png',
-  '/icon-512.png'
+  '/icon.svg'
 ];
 
 self.addEventListener('install', (e) => {
