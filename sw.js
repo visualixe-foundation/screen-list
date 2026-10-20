@@ -1,4 +1,4 @@
-const CACHE = 'screen-list-v7';
+const CACHE = 'screen-list-v8';
 const ASSETS = [
   '/',
   '/index.html',
@@ -9,7 +9,9 @@ const ASSETS = [
   '/posters.js',
   '/poster-loader.js',
   '/manifest.webmanifest',
-  '/icon.svg'
+  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {
